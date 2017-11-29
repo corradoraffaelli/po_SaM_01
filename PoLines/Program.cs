@@ -207,6 +207,19 @@ namespace PoLines
             }
             return new Entry();
         }
+
+        public Entry GetEntryWithSourceString(string OriginalSourceString)
+        {
+            if (Entries != null)
+            {
+                for (int EntryIndex = 0; EntryIndex < Entries.Count; EntryIndex++)
+                {
+                    if (Entries[EntryIndex].OriginalString == OriginalSourceString)
+                        return Entries[EntryIndex];
+                }
+            }
+            return new Entry();
+        }
     }
 
     class Program
@@ -218,8 +231,19 @@ namespace PoLines
 
             while (!goodChoice && maxChoice > 0)
             {
+                Console.WriteLine("---------------------------------------------------------");
+                Console.WriteLine("--------EXTRACTION AND MERGING OF EMPTY STRINGS----------");
+                Console.WriteLine("---------------------------------------------------------");
+                Console.WriteLine("");
                 Console.WriteLine("E - Extract empty line from po.");
-                Console.WriteLine("M - Add to the first po the lines of second po.");
+                Console.WriteLine("M - Merge a .po with filled strings to the original .po");
+                Console.WriteLine("");
+                Console.WriteLine("---------------------------------------------------------");
+                Console.WriteLine("---------------------OTHER FEATURES----------------------");
+                Console.WriteLine("---------------------------------------------------------");
+                Console.WriteLine("");
+                Console.WriteLine("F - Fill empty string of a .po with translated strings of an old .po.");
+                Console.WriteLine("");
 
                 string choice = Console.ReadLine();
 
@@ -235,6 +259,12 @@ namespace PoLines
                     Console.WriteLine("");
                     Merge();
                 }
+                else if (choice.Equals("F", StringComparison.OrdinalIgnoreCase))
+                {
+                    goodChoice = true;
+                    Console.WriteLine("");
+                    FillEmpty();
+                }
                 else
                 {
                     Console.WriteLine("Command not recognized.");
@@ -242,27 +272,6 @@ namespace PoLines
                 }
             }
            
-
-            //Console.WriteLine (path);
-
-            /*
-            string text = System.IO.File.ReadAllText(@"C:\TestFile.txt");
-            
-            System.Console.WriteLine("Contents of WriteText.txt = {0}", text);
-
-
-
-
-            string[] lines = System.IO.File.ReadAllLines(@"C:\TestFile02.txt");
-            
-            System.Console.WriteLine("Contents of WriteLines2.txt = ");
-            foreach (string line in lines)
-            {
-                // Use a tab to indent each line of the file.
-                Console.WriteLine("\t" + line);
-            }
-
-            */
             Console.WriteLine("Press any key to exit.");
             System.Console.ReadKey();
         }
@@ -350,63 +359,51 @@ namespace PoLines
             pathSave = pathSave + "_merged.po";
 
             System.IO.File.WriteAllLines(pathSave, OriginalPo.WritePoToLines());
+        }
 
+        static void FillEmpty()
+        {
+            // Read original .po
+            Console.WriteLine("Write path or drag the original full .po file with empty lines.");
 
-            /*
-            Console.WriteLine("Merge.");
+            string OriginalPath = Console.ReadLine();
 
-            // These examples assume a "C:\Users\Public\TestFolder" folder on your machine.
-            // You can modify the path if necessary.
+            string[] OriginalLines = System.IO.File.ReadAllLines(OriginalPath);
 
+            ParsedPo OriginalPo = new ParsedPo();
 
-            // Example #1: Write an array of strings to a file.
-            // Create a string array that consists of three lines.
-            string[] lines = { "First line", "Second line", "Third line" };
-            // WriteAllLines creates a file, writes a collection of strings to the file,
-            // and then closes the file.  You do NOT need to call Flush() or Close().
-            System.IO.File.WriteAllLines(@"C:\Users\Public\TestFolder\WriteLines.txt", lines);
+            OriginalPo.ReadFromLines(OriginalLines);
 
+            // Read translated .po
+            Console.WriteLine("Write path or drag the old .po file.");
 
-            // Example #2: Write one string to a text file.
-            string text = "A class is the most powerful data type in C#. Like a structure, " +
-                           "a class defines the data and behavior of the data type. ";
-            // WriteAllText creates a file, writes the specified string to the file,
-            // and then closes the file.    You do NOT need to call Flush() or Close().
-            System.IO.File.WriteAllText(@"C:\Users\Public\TestFolder\WriteText.txt", text);
+            string ExtractedPath = Console.ReadLine();
 
-            // Example #3: Write only some strings in an array to a file.
-            // The using statement automatically flushes AND CLOSES the stream and calls 
-            // IDisposable.Dispose on the stream object.
-            // NOTE: do not use FileStream for text files because it writes bytes, but StreamWriter
-            // encodes the output as text.
-            using (System.IO.StreamWriter file =
-                new System.IO.StreamWriter(@"C:\Users\Public\TestFolder\WriteLines2.txt"))
+            string[] ExtractedLines = System.IO.File.ReadAllLines(ExtractedPath);
+
+            ParsedPo ExtractedPo = new ParsedPo();
+
+            ExtractedPo.ReadFromLines(ExtractedLines);
+
+            // cycle all original .po entries
+            if (OriginalPo.Entries != null)
             {
-                foreach (string line in lines)
+                for (int OrigPoEntryIndex = 0; OrigPoEntryIndex < OriginalPo.Entries.Count; OrigPoEntryIndex++)
                 {
-                    // If the line doesn't contain the word 'Second', write the line to the file.
-                    if (!line.Contains("Second"))
+                    if (OriginalPo.Entries[OrigPoEntryIndex].bIsTranslationEmpty)
                     {
-                        file.WriteLine(line);
+                        Entry FoundEntry = ExtractedPo.GetEntryWithSourceString(OriginalPo.Entries[OrigPoEntryIndex].OriginalString);
+                        
+                        if (!String.IsNullOrEmpty(FoundEntry.TranslatedString))
+                            OriginalPo.Entries[OrigPoEntryIndex].TranslatedString = FoundEntry.TranslatedString;
                     }
                 }
             }
 
-            // Example #4: Append new text to an existing file.
-            // The using statement automatically flushes AND CLOSES the stream and calls 
-            // IDisposable.Dispose on the stream object.
-            using (System.IO.StreamWriter file =
-                new System.IO.StreamWriter(@"C:\Users\Public\TestFolder\WriteLines2.txt", true))
-            {
-                file.WriteLine("Fourth line");
-            }
-            */
-        }
+            string pathSave = OriginalPath.Remove(OriginalPath.Length - 3, 3);
+            pathSave = pathSave + "_filled.po";
 
-
-        static void SaveToFile(string[] lines, string path)
-        {
-
+            System.IO.File.WriteAllLines(pathSave, OriginalPo.WritePoToLines());
         }
     }
 }
