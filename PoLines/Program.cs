@@ -267,7 +267,8 @@ namespace PoLines
                 }
                 else
                 {
-                    Console.WriteLine("Command not recognized.");
+                    Console.WriteLine("Command not recognized. Try something else");
+                    Console.WriteLine("");
                     maxChoice--;
                 }
             }
@@ -280,8 +281,8 @@ namespace PoLines
         {
             Console.WriteLine("Write path or drag .po file with empty lines to extract.");
 
-            string path = Console.ReadLine();
-            
+            string path = Console.ReadLine().Replace("\"", "");
+
             string[] lines = System.IO.File.ReadAllLines(path);
 
             ParsedPo PoToExtract = new ParsedPo();
@@ -319,7 +320,7 @@ namespace PoLines
             // Read original .po
             Console.WriteLine("Write path or drag the original full .po file with empty lines.");
 
-            string OriginalPath = Console.ReadLine();
+            string OriginalPath = Console.ReadLine().Replace("\"", "");
 
             string[] OriginalLines = System.IO.File.ReadAllLines(OriginalPath);
 
@@ -330,7 +331,7 @@ namespace PoLines
             // Read translated .po
             Console.WriteLine("Write path or drag the extracted .po file with empty lines filled by translators.");
 
-            string ExtractedPath = Console.ReadLine();
+            string ExtractedPath = Console.ReadLine().Replace("\"", "");
 
             string[] ExtractedLines = System.IO.File.ReadAllLines(ExtractedPath);
 
@@ -366,7 +367,7 @@ namespace PoLines
             // Read original .po
             Console.WriteLine("Write path or drag the original full .po file with empty lines.");
 
-            string OriginalPath = Console.ReadLine();
+            string OriginalPath = Console.ReadLine().Replace("\"", "");
 
             string[] OriginalLines = System.IO.File.ReadAllLines(OriginalPath);
 
@@ -377,7 +378,7 @@ namespace PoLines
             // Read translated .po
             Console.WriteLine("Write path or drag the old .po file.");
 
-            string ExtractedPath = Console.ReadLine();
+            string ExtractedPath = Console.ReadLine().Replace("\"", "");
 
             string[] ExtractedLines = System.IO.File.ReadAllLines(ExtractedPath);
 
