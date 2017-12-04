@@ -72,15 +72,24 @@ namespace PoLines
             // The value msgctxt
             string TempMsgctxt = "";
 
-            foreach (string line in lines)
+            bool ReadingMsgid = false;
+
+            bool ReadingMsgtr = false;
+
+            for (int LineIndex = 0; LineIndex < lines.Length; LineIndex++)
             {
+                string line = lines[LineIndex];
+
                 if (line.Contains("msgid") && !bIsHeader)
                 {
                     TempOriginalString = line.Substring(7, line.Length - 8);
+                    ReadingMsgid = true;
                 }
                 else if (line.Contains("msgstr") && !bIsHeader)
                 {
                     TempTranslatedString = line.Substring(8, line.Length - 9);
+                    ReadingMsgid = false;
+                    ReadingMsgtr = true;
                 }
                 else if (line.Contains("#. Key") && !bIsHeader)
                 {
@@ -90,7 +99,7 @@ namespace PoLines
                 {
                     TempMsgctxt = line.Substring(9, line.Length - 10);
                 }
-                else if (String.IsNullOrEmpty(line))
+                else if (String.IsNullOrEmpty(line) || LineIndex >= (lines.Length - 1))
                 {
                     // If it's the header, save all the temp entry to the intro array
                     if (bIsHeader)
@@ -102,6 +111,8 @@ namespace PoLines
                     // if it's not the header, create a new Entry and fill its values
                     else
                     {
+                        ReadingMsgtr = false;
+
                         Entry FoundEntry = new Entry();
 
                         FoundEntry.Prefix = TempEntry.ToArray();
@@ -127,7 +138,23 @@ namespace PoLines
                 // Line is not empty and it's not the original or the translated message
                 else
                 {
-                    TempEntry.Add(line);
+                    // poedit add lines, so I consider reading multiple lines
+                    if (ReadingMsgid)
+                    {
+                        TempOriginalString =
+                            TempOriginalString +
+                            line.Substring(1, line.Length - 2);
+                    }
+                    else if (ReadingMsgtr)
+                    {
+                        TempTranslatedString =
+                            TempTranslatedString +
+                            line.Substring(1, line.Length - 2);
+                    }
+                    else
+                    {
+                        TempEntry.Add(line);
+                    }
                 }
             }
         }
@@ -188,9 +215,9 @@ namespace PoLines
 
             OutputStringList.Add(MsgctxtString);
 
-            OutputStringList.Add(OriginalStringString);
+            OutputStringList.Add(OriginalStringString.Replace("\r", "\\r").Replace("\n", "\\n"));
 
-            OutputStringList.Add(TranslatedStringString);
+            OutputStringList.Add(TranslatedStringString.Replace("\r", "\\r").Replace("\n", "\\n"));
 
             return OutputStringList.ToArray();
         }
